@@ -6,10 +6,22 @@ module FideXmlParser
 
 # Recommended entry point is Processor.parse, which creates an instance of the class, initiates the parse,
 # and returns the parsed data.
+#
+# Supports key and record filters.
+
+# For key filter, pass a lambda that takes a key name as a parameter
+# and returns true to include it, false to exclude it,
+# e.g. to exclude :foo and :bar, do this:
+# processor.key_filter = ->(key) { ! %i(foo bar).include?(key) }
+
+# For record filter, pass a lambda that takes a record as a parameter,
+# and returns true to include it or false to exclude it,
+# e.g. to include only records with a "title", do this:
+# processor.record_filter = ->(rec) { rec.title }
 class Processor < Nokogiri::XML::SAX::Document
 
   attr_reader :start_time
-  attr_accessor :current_property_name, :record, :records
+  attr_accessor :current_property_name, :record, :records, :key_filter, :record_filter
 
   NUMERIC_FIELDS = %w[
     k
@@ -37,6 +49,7 @@ class Processor < Nokogiri::XML::SAX::Document
     @record = {}
     @records = []
     @start_time = current_time
+    @keys_to_exclude = []
   end
 
 
@@ -80,7 +93,7 @@ class Processor < Nokogiri::XML::SAX::Document
 
 
   def characters(string)
-    if current_property_name
+    if current_property_name &&
       value = NUMERIC_FIELDS.include?(current_property_name) ? Integer(string) : string
       record[current_property_name] = value
     end
