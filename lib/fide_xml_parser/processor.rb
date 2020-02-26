@@ -35,21 +35,19 @@ class Processor < Nokogiri::XML::SAX::Document
   	rapid_games
   ]
 
-  def self.parse(data_source)
-    document = self.new
-    parser = Nokogiri::XML::SAX::Parser.new(document)
-    parser.parse(data_source)
-    records = document.parsed_data
-    records
-  end
-
-
   def initialize
     @current_property_name = nil
     @record = {}
     @records = []
     @start_time = current_time
     @keys_to_exclude = []
+  end
+
+
+  def parse(data_source)
+    parser = Nokogiri::XML::SAX::Parser.new(self)
+    parser.parse(data_source)
+    records
   end
 
 
@@ -103,11 +101,6 @@ class Processor < Nokogiri::XML::SAX::Document
   def finish
     output_status(records.count)
     puts
-  end
-
-
-  def parsed_data
-    records
   end
 end
 end

@@ -42,7 +42,8 @@ module FideXmlParser
     # Separated from the public `write` method in order to validate filespecs only once.
     private
     def self.write_private(input_filespec, json_mode = :pretty)
-      records = FideXmlParser::Processor.parse(File.new(input_filespec))
+      parser = FideXmlParser::Processor.new
+      records = parser.parse(File.new(input_filespec))
       json_text = (json_mode == :pretty) ? JSON.pretty_generate(records) : records.to_json
       json_filespec = input_filespec.sub(/\.xml$/, '.json')
       File.write(json_filespec, json_text)
