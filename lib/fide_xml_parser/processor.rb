@@ -11,8 +11,8 @@ module FideXmlParser
 
 # For key filter, pass a lambda that takes a key name as a parameter
 # and returns true to include it, false to exclude it,
-# e.g. to exclude :foo and :bar, do this:
-# processor.key_filter = ->(key) { ! %i(foo bar).include?(key) }
+# e.g. to exclude 'foo' and 'bar', do this:
+# processor.key_filter = ->(key) { ! %w(foo bar).include?(key) }
 
 # For record filter, pass a lambda that takes a record as a parameter,
 # and returns true to include it or false to exclude it,
@@ -36,6 +36,8 @@ class Processor < Nokogiri::XML::SAX::Document
   ]
 
   def initialize
+    @key_filter = nil
+    @record_filter = nil
     @current_property_name = nil
     @record = {}
     @records = []
@@ -82,7 +84,9 @@ class Processor < Nokogiri::XML::SAX::Document
     when 'playerslist'  # end of data, write JSON file
       finish
     when 'player'
-      records << record
+      if record_filter.nil? || record_filter.(record)
+        records << record
+      end
       self.record = {}
     else
       self.current_property_name = nil
@@ -91,9 +95,11 @@ class Processor < Nokogiri::XML::SAX::Document
 
 
   def characters(string)
-    if current_property_name &&
-      value = NUMERIC_FIELDS.include?(current_property_name) ? Integer(string) : string
-      record[current_property_name] = value
+    if current_property_name
+      if key_filter.nil? || key_filter.(current_property_name)
+        value = NUMERIC_FIELDS.include?(current_property_name) ? Integer(string) : string
+        record[current_property_name] = value
+      end
     end
   end
 
