@@ -31,10 +31,14 @@ class JsonWriter
   # To write a single file, pass the filespec as the `input_filespecs` parameter.
   # To write multiple files, pass an array of filespecs as the `input_filespecs` parameter
   # json_mode: :pretty for human readable JSON, :compact for compact JSON
-  def write(input_filespecs, json_mode = :pretty)
-    input_filespecs = Array(input_filespecs)
-    validate_input_filespecs(input_filespecs)
-    input_filespecs.each { |filespec| write_private(filespec, json_mode) }
+  # Default json_filespec will be constructed from the input file, just replacing 'xml' with 'json'.
+  def write(input_filespec, json_mode = :pretty, json_filespec = nil)
+    if input_filespec.is_a?(Array)
+      raise Error.new("This method is used only for single files, use write_multiple for multiple files.")
+    end
+
+    validate_input_filespecs(Array[input_filespec])
+    write_private(input_filespec, json_mode, json_filespec)
   end
 
 
@@ -50,15 +54,16 @@ class JsonWriter
 
   # Implementation for writing a single file.
   # Separated from the public `write` method in order to validate filespecs only once.
+  # Default json_filespec will be constructed from the input file, just replacing 'xml' with 'json'.
   private
-  def write_private(input_filespec, json_mode = :pretty)
+  def write_private(input_filespec, json_mode = :pretty, json_filespec = nil)
     @parser = FideXmlParser::Processor.new
     parser.key_filter = key_filter
     parser.record_filter = record_filter
     records = parser.parse(File.new(input_filespec))
 
     json_text = (json_mode == :pretty) ? JSON.pretty_generate(records) : records.to_json
-    json_filespec = input_filespec.sub(/\.xml$/, '.json')
+    json_filespec ||= input_filespec.sub(/\.xml$/, '.json')
     File.write(json_filespec, json_text)
     puts "#{records.size} records processed, #{input_filespec} --> #{json_filespec}"
   end

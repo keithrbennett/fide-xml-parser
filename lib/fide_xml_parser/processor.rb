@@ -21,18 +21,19 @@ module FideXmlParser
 class Processor < Nokogiri::XML::SAX::Document
 
   attr_reader :start_time
-  attr_accessor :current_property_name, :record, :records, :key_filter, :record_filter
+  attr_accessor :current_property_name, :record, :records, :key_filter, :record_filter,
+                :input_record_count, :output_record_count
 
   NUMERIC_FIELDS = %w[
     k
     blitz_k
     rapid_k
-  	rating
-  	blitz_rating
-  	rapid_rating
-  	games
-  	blitz_games
-  	rapid_games
+    rating
+    blitz_rating
+    rapid_rating
+    games
+    blitz_games
+    rapid_games
   ]
 
   def initialize
@@ -43,6 +44,8 @@ class Processor < Nokogiri::XML::SAX::Document
     @records = []
     @start_time = current_time
     @keys_to_exclude = []
+    @input_record_count = 0
+    @output_record_count = 0
   end
 
 
@@ -58,10 +61,11 @@ class Processor < Nokogiri::XML::SAX::Document
   end
 
 
-  def output_status(record_count)
+  def output_status
     print TTY::Cursor.column(1)
-    print "Records processed: %9d   Seconds elapsed: %11.2f" % [
-        record_count,
+    print "Records processed: %9d   kept: %9d    Seconds elapsed: %11.2f" % [
+        input_record_count,
+        output_record_count,
         current_time - start_time
     ]
   end
@@ -72,7 +76,8 @@ class Processor < Nokogiri::XML::SAX::Document
     when 'playerslist'
       # ignore
     when 'player'
-      output_status(records.size) if records.size % 1000 == 0
+      self.input_record_count += 1
+      output_status if input_record_count % 1000 == 0
     else # this is a field in the players record; process it as such
       self.current_property_name = name
     end
@@ -85,6 +90,7 @@ class Processor < Nokogiri::XML::SAX::Document
       finish
     when 'player'
       if record_filter.nil? || record_filter.(record)
+        self.output_record_count += 1
         records << record
       end
       self.record = {}
@@ -105,7 +111,7 @@ class Processor < Nokogiri::XML::SAX::Document
 
 
   def finish
-    output_status(records.count)
+    output_status
     puts
   end
 end
