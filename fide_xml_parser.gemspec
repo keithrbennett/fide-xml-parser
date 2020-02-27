@@ -8,12 +8,12 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Keith Bennett"]
   spec.email         = ["keithrbennett@gmail.com"]
 
-  spec.summary       = %q{Parses XML files downloaded from fide.com.}
-  spec.description   = %q{Parses XML files downloaded from fide.com.}
+  spec.summary       = %q{Parses XML files downloaded from fide.com and writes JSON files.}
+  spec.description   = spec.summary
   spec.homepage      = "https://github.com/keithrbennett/fide-xml-parser"
   spec.license       = "Apache-2.0"
 
-  spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
+  spec.metadata['allowed_push_host'] = "https://rubygems.org"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
