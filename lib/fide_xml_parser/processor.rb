@@ -24,6 +24,8 @@ class Processor < Nokogiri::XML::SAX::Document
   attr_accessor :current_property_name, :record, :records, :key_filter, :record_filter,
                 :input_record_count, :output_record_count
 
+  ANSI_GO_TO_LINE_START = "\033[1G"
+
   NUMERIC_FIELDS = %w[
     k
     blitz_k
@@ -62,7 +64,7 @@ class Processor < Nokogiri::XML::SAX::Document
 
 
   def output_status
-    print TTY::Cursor.column(1)
+    print ANSI_GO_TO_LINE_START
     print "Records processed: %9d   kept: %9d    Seconds elapsed: %11.2f" % [
         input_record_count,
         output_record_count,
