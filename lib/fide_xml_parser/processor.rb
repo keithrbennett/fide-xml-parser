@@ -20,24 +20,22 @@ module FideXmlParser
 class Processor < Nokogiri::XML::SAX::Document
 
   attr_reader :start_time
-  attr_accessor :current_property_name, :record, :records, :key_filter, :record_filter,
-                :input_record_count, :output_record_count
+
+  # Constructor parameters:
+  attr_accessor :numeric_fields, :array_name, :record_name
+
+  # User-provided callbacks:
+  attr_accessor :key_filter, :record_filter
+
+  # For internal use:
+  attr_accessor :current_property_name, :record, :records, :input_record_count, :output_record_count
 
   ANSI_GO_TO_LINE_START = "\033[1G"
 
-  NUMERIC_FIELDS = %w[
-    k
-    blitz_k
-    rapid_k
-    rating
-    blitz_rating
-    rapid_rating
-    games
-    blitz_games
-    rapid_games
-  ]
-
-  def initialize
+  def initialize(array_name, record_name, numeric_fields)
+    @array_name = array_name
+    @record_name = record_name
+    @numeric_fields = numeric_fields
     @key_filter = nil
     @record_filter = nil
     @current_property_name = nil
@@ -74,9 +72,9 @@ class Processor < Nokogiri::XML::SAX::Document
 
   def start_element(name, _attrs)
     case name
-    when 'playerslist'
+    when array_name
       # ignore
-    when 'player'
+    when record_name
       self.input_record_count += 1
       output_status if input_record_count % 1000 == 0
     else # this is a field in the players record; process it as such
@@ -87,9 +85,9 @@ class Processor < Nokogiri::XML::SAX::Document
 
   def end_element(name)
     case name
-    when 'playerslist'  # end of data, write JSON file
+    when array_name  # end of data, write JSON file
       finish
-    when 'player'
+    when record_name
       if record_filter.nil? || record_filter.(record)
         self.output_record_count += 1
         records << record
@@ -104,7 +102,7 @@ class Processor < Nokogiri::XML::SAX::Document
   def characters(string)
     if current_property_name
       if key_filter.nil? || key_filter.(current_property_name)
-        value = NUMERIC_FIELDS.include?(current_property_name) ? Integer(string) : string
+        value = numeric_fields.include?(current_property_name) ? Integer(string) : string
         record[current_property_name] = value
       end
     end

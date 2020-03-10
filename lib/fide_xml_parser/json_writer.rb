@@ -57,7 +57,7 @@ class JsonWriter
   # Default json_filespec will be constructed from the input file, just replacing 'xml' with 'json'.
   private
   def write_private(input_filespec, json_mode: :pretty, json_filespec: nil)
-    @parser = FideXmlParser::Processor.new
+    @parser = FideXmlParser::FideProcessor.new
     parser.key_filter = key_filter
     parser.record_filter = record_filter
     records = parser.parse(File.new(input_filespec))
