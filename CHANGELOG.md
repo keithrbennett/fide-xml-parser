@@ -10,3 +10,4 @@ First release.
 
 * Parser can now be configured with array name, record name, and numeric field list.
 * Interface has changed, must instantiate FideParser for FIDE files.
+* Field name renames (renaming) can now be done.

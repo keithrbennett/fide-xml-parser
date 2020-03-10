@@ -17,6 +17,16 @@ module FideXmlParser
 # and returns true to include it or false to exclude it,
 # e.g. to include only records with a "title", do this:
 # processor.record_filter = ->(rec) { rec.title }
+# If a field name has been changed via the field_name_renames hash, the new name should be used in the filter.
+
+# A field_name_renames hash can be provided.
+# Keys are the field names in the XML input, values are the names in the output JSON, e.g.:
+#   {
+#       'rating' => 'standard_rating',
+#       'games'  => 'standard_games'
+#   }
+
+
 class Processor < Nokogiri::XML::SAX::Document
 
   attr_reader :start_time
@@ -25,7 +35,7 @@ class Processor < Nokogiri::XML::SAX::Document
   attr_accessor :numeric_fields, :array_name, :record_name
 
   # User-provided callbacks:
-  attr_accessor :key_filter, :record_filter
+  attr_accessor :key_filter, :record_filter, :field_name_renames
 
   # For internal use:
   attr_accessor :current_property_name, :record, :records, :input_record_count, :output_record_count
@@ -38,6 +48,7 @@ class Processor < Nokogiri::XML::SAX::Document
     @numeric_fields = numeric_fields
     @key_filter = nil
     @record_filter = nil
+    @field_name_renames = nil
     @current_property_name = nil
     @record = {}
     @records = []
@@ -103,7 +114,14 @@ class Processor < Nokogiri::XML::SAX::Document
     if current_property_name
       if key_filter.nil? || key_filter.(current_property_name)
         value = numeric_fields.include?(current_property_name) ? Integer(string) : string
-        record[current_property_name] = value
+        key = current_property_name
+        if field_name_renames
+          new_field_name = field_name_renames[key]
+          if new_field_name
+            key = new_field_name
+          end
+        end
+        record[key] = value
       end
     end
   end

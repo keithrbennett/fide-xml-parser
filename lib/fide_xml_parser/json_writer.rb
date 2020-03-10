@@ -5,12 +5,13 @@ module FideXmlParser
 class JsonWriter
 
   attr_reader :parser
-  attr_accessor :key_filter, :record_filter
+  attr_accessor :key_filter, :record_filter, :field_name_renames
 
 
   def initialize
     @key_filter = nil
     @record_filter = nil
+    @field_name_renames = nil
   end
 
 
@@ -60,6 +61,7 @@ class JsonWriter
     @parser = FideXmlParser::FideProcessor.new
     parser.key_filter = key_filter
     parser.record_filter = record_filter
+    parser.field_name_renames = field_name_renames
     records = parser.parse(File.new(input_filespec))
     json_text = (json_mode == :pretty) ? JSON.pretty_generate(records) : records.to_json
     json_filespec ||= input_filespec.sub(/\.xml$/, '.json')
