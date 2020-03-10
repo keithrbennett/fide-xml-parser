@@ -1,6 +1,5 @@
 require 'awesome_print'
 require 'nokogiri'
-require 'tty-cursor'
 
 module FideXmlParser
 
