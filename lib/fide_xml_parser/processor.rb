@@ -40,13 +40,14 @@ class Processor < Nokogiri::XML::SAX::Document
 
   ANSI_GO_TO_LINE_START = "\e[1G"
 
-  def initialize(array_name, record_name, integer_fields)
+  def initialize(array_name:, record_name:, integer_fields: nil,
+                 key_filter: nil, record_filter: nil, field_name_renames: nil)
     @array_name = array_name
     @record_name = record_name
     @integer_fields = integer_fields
-    @key_filter = nil
-    @record_filter = nil
-    @field_name_renames = nil
+    @key_filter = key_filter
+    @record_filter = record_filter
+    @field_name_renames = field_name_renames
     @current_property_name = nil
     @record = {}
     @records = []
@@ -58,6 +59,7 @@ class Processor < Nokogiri::XML::SAX::Document
 
 
   def parse(data_source)
+    data_source = File.new(data_source) if data_source.is_a?(String)
     parser = Nokogiri::XML::SAX::Parser.new(self)
     parser.parse(data_source)
     records
