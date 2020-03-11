@@ -4,7 +4,7 @@ module FideXmlParser
 
   class FideProcessor < Processor
 
-    NUMERIC_FIELDS = %w[
+    INTEGER_FIELDS = %w[
         k
         blitz_k
         rapid_k
@@ -17,7 +17,7 @@ module FideXmlParser
     ].map(&:freeze)
 
     def initialize
-      super('playerslist', 'player', NUMERIC_FIELDS)
+      super('playerslist', 'player', INTEGER_FIELDS)
     end
   end
 end
